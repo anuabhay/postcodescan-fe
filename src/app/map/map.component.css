@@ -1,0 +1,16 @@
+.map.ol-dragbox {
+      border-color: red;
+      border-width: 3px;
+      background-color: rgba(255,255,255,0.4);
+}
+.map.ol-box{
+    background-color: rgba(255,255,255,0.4);
+    border-color: rgba(100,150,0,1);
+}
+
+.map.ol-dragzoom {
+  border-color: red;
+  border-width: 3px;
+  background-color: rgba(255,255,255,0.4);
+}
+
