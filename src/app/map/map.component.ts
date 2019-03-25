@@ -38,6 +38,8 @@ export class MapComponent implements OnInit {
   layer: OlTileLayer;
   view: OlView;
   suburbs: Array<any>;
+  business_type: String = 'Restuarents';
+  businesses: Array<any>;
 
   constructor(private http: HttpClient){
 
@@ -45,6 +47,7 @@ export class MapComponent implements OnInit {
 
   ngOnInit() {
       this.suburbs = [];
+      this.businesses = [];
       this.source = new OlXYZ({
         url: 'http://tile.osm.org/{z}/{x}/{y}.png'
       });
@@ -83,38 +86,48 @@ export class MapComponent implements OnInit {
         var extent = dragBox.getGeometry().getExtent();
         var projection = this.layer.getSource().getProjection();
         this.suburbs = [];
+        //this.businesses = [];
         this.get_cities(this, extent, projection);
       }).bind(this)
       );
   }
 
+  private get_businesses() {
+    //this.businesses = [];
+    var url = 'http://localhost:8080/postcodes?locations=' + this.suburbs.join() + '&types=' +
+                this.business_type;
 
-  private get_cities_osm() {
-    var vectorSource = new VectorSource({
-        format: new OSMXML(),
-        loader: function(extent, resolution, projection) {
-          var epsg4326Extent = transformExtent(extent, projection, 'EPSG:4326');
-          var client = new XMLHttpRequest();
-          client.open('POST', 'https://overpass-api.de/api/interpreter');
-          client.addEventListener('load', function() {
-            var features = new OSMXML().readFeatures(client.responseText, {
-              featureProjection: 'this.map.getView().getProjection()'
-            });
-            vectorSource.addFeatures(features);
-          });
-          var query = MapComponent.get_query(epsg4326Extent);
-          client.send(query);
-        },
-        strategy: bboxStrategy
-    });
-    var vector = new VectorLayer({
-        source: vectorSource,
+    console.log(url);
+    const req = new HttpRequest('GET', url, {
+      reportProgress: true
     });
 
-   this.map.addLayer(vector);
+    this.http.request(req).subscribe((event: HttpEvent<any>) => {
+      switch (event.type) {
+        case HttpEventType.Sent:
+          console.log('Request sent!');
+          break;
+        case HttpEventType.ResponseHeader:
+          console.log('Response header received!');
+          break;
+        case HttpEventType.DownloadProgress:
+          const kbLoaded = Math.round(event.loaded / 1024);
+          console.log(`Download in progress! ${ kbLoaded }Kb loaded`);
+          break;
+        case HttpEventType.Response:
+          console.log('😺 Done!', event.body);
+          var business_collection = event.body;
+            //feature_collection = feature_collection.features;
+            for (var business in business_collection)
+            {
+                 this.businesses.push(business_collection[business].name + '  ' + business_collection[business].email);
+            }
+      }
+    });
   }
 
   private get_cities(mapComponent,extent,projection) {
+
      var epsg4326Extent = transformExtent(extent, projection, 'EPSG:4326');
      var url = 'https://services.land.vic.gov.au/catalogue/publicproxy/guest/dv_geoserver/wfs?'
                   + MapComponent.get_wfs(epsg4326Extent);
@@ -142,11 +155,40 @@ export class MapComponent implements OnInit {
             {
                   if( feature_collection[feature] != null){
                       console.log(feature_collection[feature].properties.POSTCODE);
-                      mapComponent.suburbs.push(feature_collection[feature].properties);
+                      mapComponent.suburbs.push(feature_collection[feature].properties.POSTCODE);
                   }
             }
       }
     });
+  }
+
+
+  static get_wfs(epsg4326Extent){
+      var query =  'SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=datavic:VMADMIN_POSTCODE_POLYGON&'
+              + 'outputFormat=application/json&PROPERTYNAME=POSTCODE&BBOX='
+              +  epsg4326Extent[0] + ',' + epsg4326Extent[1] + ',' +
+              epsg4326Extent[2] + ',' + epsg4326Extent[3]
+      return query;
+
+  }
+
+
+  static get_query(epsg4326Extent){
+      var query = '(node' + '["place"="city"]' + '(' +
+              epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
+              epsg4326Extent[3] + ',' + epsg4326Extent[2] +
+              ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
+      console.log(query);
+      return query;
+  }
+
+  static get_query_test(epsg4326Extent){
+      var query = '(node' + '["name"="City of Melbourne"]' + '(' +
+              epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
+              epsg4326Extent[3] + ',' + epsg4326Extent[2] +
+              ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
+      console.log(query);
+      return query;
   }
 
 
@@ -191,35 +233,32 @@ export class MapComponent implements OnInit {
    this.map.addLayer(vector);
   }
 
- static get_query(epsg4326Extent){
-      var query = '(node' + '["place"="city"]' + '(' +
-              epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
-              epsg4326Extent[3] + ',' + epsg4326Extent[2] +
-              ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
-      console.log(query);
-      return query;
+   private get_cities_osm() {
+    var vectorSource = new VectorSource({
+        format: new OSMXML(),
+        loader: function(extent, resolution, projection) {
+          var epsg4326Extent = transformExtent(extent, projection, 'EPSG:4326');
+          var client = new XMLHttpRequest();
+          client.open('POST', 'https://overpass-api.de/api/interpreter');
+          client.addEventListener('load', function() {
+            var features = new OSMXML().readFeatures(client.responseText, {
+              featureProjection: 'this.map.getView().getProjection()'
+            });
+            vectorSource.addFeatures(features);
+          });
+          var query = MapComponent.get_query(epsg4326Extent);
+          client.send(query);
+        },
+        strategy: bboxStrategy
+    });
+    var vector = new VectorLayer({
+        source: vectorSource,
+    });
+
+   this.map.addLayer(vector);
   }
 
-  static get_query_test(epsg4326Extent){
-      var query = '(node' + '["name"="City of Melbourne"]' + '(' +
-              epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
-              epsg4326Extent[3] + ',' + epsg4326Extent[2] +
-              ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
-      console.log(query);
-      return query;
-  }
 
-
-  static get_wfs(epsg4326Extent){
-      //var query = 'services.land.vic.gov.au/catalogue/publicproxy/guest/dv_geoserver/wfs?'
-      var query =  'SERVICE=WFS&VERSION=1.0.0&REQUEST=GetFeature&TYPENAME=datavic:VMADMIN_POSTCODE_POLYGON&'
-              + 'outputFormat=application/json&PROPERTYNAME=POSTCODE&BBOX='
-              +  epsg4326Extent[0] + ',' + epsg4326Extent[1] + ',' +
-              epsg4326Extent[2] + ',' + epsg4326Extent[3]
-      console.log("AAAXXXXXX" + query);
-      return query;
-
-  }
 
 }
 

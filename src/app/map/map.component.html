@@ -3,19 +3,56 @@
 <head>
   <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
   <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
-  <style>
+ <!-- <style>
       .ol-dragbox {
         background-color: rgba(255,255,255,0.4);
         border-color: rgba(100,150,0,1);
       }
-    </style>
+    </style> -->
 </head>
 <body>
-<div id="map" class="map"></div>
 
-<div *ngFor="let  suburb of suburbs">
-  {{suburb.POSTCODE}}
+<div class="wrap">
+  <div id="map" class="map fleft"></div>
+
+  <div class="fright">
+    <p>Selected Postcodes</p>
+    <div class="top">
+
+      <ng-container *ngFor="let  suburb of suburbs">
+       {{suburb}}
+      </ng-container>
+    </div>
+
+    <p>Businesses Type for Search</p>
+    <div >
+      <input ngControl="business_type" [(ngModel)]="business_type">
+    </div>
+
+
+    <!--<div class="bottom">
+      <ng-container *ngFor="let  business of businesses">
+        {{business}}
+      </ng-container>
+    </div>-->
+    <!--<textarea ngControl="businesses"  [(ngModel)]="businesses"></textarea>-->
+  </div>
+
+  <!--<div class="fleft-bottom">
+    <input ngControl="business_type" [(ngModel)]="business_type">
+  </div>-->
+  <div class="fleft-bottom">
+    <p>Results</p>
+    <div class="bottom">
+
+      <li *ngFor="let  business of businesses">
+        {{ business }}
+      </li>
+    </div>
+  </div>
+  <div class="fright-bottom">
+    <button (click)="get_businesses()">GetData</button>
+  </div>
 </div>
-
 </body>
 </html>

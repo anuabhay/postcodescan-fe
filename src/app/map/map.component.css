@@ -1,16 +1,57 @@
-.map.ol-dragbox {
-      border-color: red;
-      border-width: 3px;
-      background-color: rgba(255,255,255,0.4);
-}
-.map.ol-box{
-    background-color: rgba(255,255,255,0.4);
-    border-color: rgba(100,150,0,1);
+.ol-dragbox {
+        background-color: rgba(255,255,255,0.4);
+        border-color: rgba(100,150,0,1);
+      }
+
+.wrap {
+width: 100%;
+overflow:auo;
 }
 
-.map.ol-dragzoom {
-  border-color: red;
-  border-width: 3px;
-  background-color: rgba(255,255,255,0.4);
+.fleft {
+    float:left;
+    float:top;
+    height: 95%;
+    width: 78%;
 }
 
+.fright {
+    float: right;
+    float:top;
+    height: 95%;
+    width: 20%;
+}
+
+.fleft-bottom {
+    float:left;
+    float:bottom;
+    height: 5%;
+    width: 78%;
+
+}
+
+.fright-bottom {
+    float: right;
+    float:bottom;
+    height: 5%;
+    width: 20%;
+}
+
+
+.top {
+    border:1px solid black;
+    clear: both;
+    max-height:100px;
+    overflow-y: scroll;
+    margin-top: 5px;
+    padding: 5px;
+}
+.bottom {
+    border:1px solid black;
+    clear: both;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    max-height:400px;
+    margin-top: 5px;
+    padding: 5px;
+}
