@@ -15,6 +15,7 @@ import {transformExtent} from 'ol/proj';
 import {bbox as bboxStrategy} from 'ol/loadingstrategy';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
+//import {SomeModule} from '../results/results.component';
 
 import {
 HttpClient,
@@ -24,10 +25,17 @@ HttpEventType
 } from '@angular/common/http';
 
 
+function Business(name, email , phone , address) {
+   this.name = name;
+   this.email = email;
+   this.phone = phone;
+   this.address = address;
+}
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css']
+  styleUrls: ['./map.component.css'],
 })
 
 
@@ -40,7 +48,6 @@ export class MapComponent implements OnInit {
   suburbs: Array<any>;
   business_type: String = 'Restuarents';
   businesses: Array<any>;
-
   constructor(private http: HttpClient){
 
   }
@@ -92,8 +99,14 @@ export class MapComponent implements OnInit {
       );
   }
 
+  private get_businesses1(){
+    let bus = new Business('name1','email1','phone1','address1');
+    console.log(this.businesses);
+    this.businesses.push(bus);
+  }
+
   private get_businesses() {
-    //this.businesses = [];
+    this.businesses = [];
     var url = 'http://localhost:8080/postcodes?locations=' + this.suburbs.join() + '&types=' +
                 this.business_type;
 
@@ -115,13 +128,19 @@ export class MapComponent implements OnInit {
           console.log(`Download in progress! ${ kbLoaded }Kb loaded`);
           break;
         case HttpEventType.Response:
-          console.log('😺 Done!', event.body);
+          console.log('😺 Done!');
           var business_collection = event.body;
             //feature_collection = feature_collection.features;
             for (var business in business_collection)
             {
-                 this.businesses.push(business_collection[business].name + '  ' + business_collection[business].email);
+                 let bus = new Business(business_collection[business].name,
+                                         business_collection[business].email,
+                                        business_collection[business].phone,
+                                        business_collection[business].address
+                                        );
+                 this.businesses.push(bus);
             }
+            console.log(this.businesses)
       }
     });
   }
