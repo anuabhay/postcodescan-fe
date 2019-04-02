@@ -32,9 +32,8 @@ export class ResultsComponent implements OnChanges{
     headElement = ['name', 'address', 'phone', 'email'];
     //dataSource = ELEMENT_DATA;
     //dataSource = this.businesses;
-
     ngOnChanges(changes: SimpleChanges) {
-        console.log('prev value: ');
+
     }
 
 }

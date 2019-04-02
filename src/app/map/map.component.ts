@@ -35,7 +35,7 @@ function Business(name, email , phone , address) {
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css'],
+  styleUrls: ['./map.component.css','../../../node_modules/angular2-busy/build/style/busy.css'],
 })
 
 
@@ -48,6 +48,9 @@ export class MapComponent implements OnInit {
   suburbs: Array<any>;
   business_type: String = 'Restuarents';
   businesses: Array<any>;
+  busy: any;
+  suburbsstr : String;
+  
   constructor(private http: HttpClient){
 
   }
@@ -93,6 +96,7 @@ export class MapComponent implements OnInit {
         var extent = dragBox.getGeometry().getExtent();
         var projection = this.layer.getSource().getProjection();
         this.suburbs = [];
+        this.suburbsstr = '';
         //this.businesses = [];
         this.get_cities(this, extent, projection);
       }).bind(this)
@@ -101,21 +105,22 @@ export class MapComponent implements OnInit {
 
   private get_businesses1(){
     let bus = new Business('name1','email1','phone1','address1');
-    console.log(this.businesses);
+    //console.log(this.businesses);
     this.businesses.push(bus);
   }
 
   private get_businesses() {
+
     this.businesses = [];
     var url = 'http://localhost:8080/postcodes?locations=' + this.suburbs.join() + '&types=' +
-                this.business_type;
+                this.business_type +'&dummy=yes';
 
     console.log(url);
     const req = new HttpRequest('GET', url, {
       reportProgress: true
     });
 
-    this.http.request(req).subscribe((event: HttpEvent<any>) => {
+    this.busy = this.http.request(req).subscribe((event: HttpEvent<any>) => {
       switch (event.type) {
         case HttpEventType.Sent:
           console.log('Request sent!');
@@ -140,7 +145,8 @@ export class MapComponent implements OnInit {
                                         );
                  this.businesses.push(bus);
             }
-            console.log(this.businesses)
+            //console.log(this.businesses)
+            this.busy = 'Done';
       }
     });
   }
@@ -167,14 +173,14 @@ export class MapComponent implements OnInit {
           console.log(`Download in progress! ${ kbLoaded }Kb loaded`);
           break;
         case HttpEventType.Response:
-          console.log('😺 Done!', event.body);
+          //console.log('😺 Done!', event.body);
           var feature_collection = event.body;
             feature_collection = feature_collection.features;
             for (var feature in feature_collection)
             {
                   if( feature_collection[feature] != null){
-                      console.log(feature_collection[feature].properties.POSTCODE);
                       mapComponent.suburbs.push(feature_collection[feature].properties.POSTCODE);
+                      mapComponent.suburbsstr = mapComponent.suburbsstr + ' ' +feature_collection[feature].properties.POSTCODE
                   }
             }
       }
@@ -197,7 +203,6 @@ export class MapComponent implements OnInit {
               epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
               epsg4326Extent[3] + ',' + epsg4326Extent[2] +
               ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
-      console.log(query);
       return query;
   }
 
@@ -206,38 +211,30 @@ export class MapComponent implements OnInit {
               epsg4326Extent[1] + ',' + epsg4326Extent[0] + ',' +
               epsg4326Extent[3] + ',' + epsg4326Extent[2] +
               ');rel(bn)->.foo;way(bn);node(w)->.foo;rel(bw););out ;';
-      console.log(query);
       return query;
   }
 
 
   private get_cities_xx(mapComponent) {
-    console.log('send--1');
-
     var vectorSource = new VectorSource({
         format: new GeoJSON(),
         loader: function(extent, resolution, projection) {
-          console.log(projection);
           var epsg4326Extent = transformExtent(extent, projection, 'EPSG:4326');
           var client = new XMLHttpRequest();
           var url = 'https://services.land.vic.gov.au/catalogue/publicproxy/guest/dv_geoserver/wfs?'
                   + MapComponent.get_wfs(epsg4326Extent);
           client.open('GET', url);
           client.addEventListener('load', function() {
-            console.log(client.responseText);
             var feature_collection = JSON.parse(client.responseText);
             feature_collection = feature_collection.features;
             for (var feature in feature_collection)
             {
                   if( feature_collection[feature] != null){
-                      console.log(feature_collection[feature].properties.POSTCODE);
                       mapComponent.suburbs.push(feature_collection[feature].properties);
                   }
             }
-            //console.log('send ');
-            //client.send();
+
           });
-          console.log('send ');
           client.send();
         },
         strategy: bboxStrategy

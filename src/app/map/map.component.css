@@ -5,7 +5,7 @@
 
 .wrap {
 width: 100%;
-overflow:auo;
+#overflow:auo;
 }
 
 .fleft {
@@ -27,6 +27,10 @@ overflow:auo;
     float:bottom;
     height: 5%;
     width: 78%;
+    margin-top: 5px;
+    max-height:300px;
+    //overflow-x: visible;
+    //overflow-y: scroll
 
 }
 
@@ -35,6 +39,7 @@ overflow:auo;
     float:bottom;
     height: 5%;
     width: 20%;
+    margin-top: 5px;
 }
 
 
@@ -58,4 +63,9 @@ overflow:auo;
 
 [hidden] {
   display: none !important;
+}
+
+.loading {
+color:green;
+font-size: 24px;
 }
