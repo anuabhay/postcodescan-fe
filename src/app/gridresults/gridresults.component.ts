@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, SimpleChange } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, SimpleChange , Output, EventEmitter } from '@angular/core';
 
 @Component({
  selector: 'gridresults',
@@ -6,20 +6,43 @@ import { Component, Input, OnChanges, SimpleChanges, SimpleChange } from '@angul
   styleUrls: ['./gridresults.component.css']
 })
 
-export class GridResultsComponent implements OnChanges{
-  @Input() businesses: Array<any>;
+export class GridResultsComponent {
   private _businesses: Array<any>;
-  constructor() {}
+  private gridApi;
+  private mapcomponent: any;
+  @Output() selectedAddress = new EventEmitter();
 
-  ngOnChanges(changes: SimpleChanges) {
-    const businesses: SimpleChange = changes.businesses;
-    console.log('curr value: ' , changes.businesses.currentValue);
-    console.log('curr valuea: ' , typeof  changes.businesses.currentValue);
-    this.rowData = businesses.previousValue;
+  constructor()
+  {
+  }
+
+  get businesses(): Array<any>
+  {
+      return this._businesses;
+  }
+
+  @Input()
+  set businesses(businesses: Array<any>) {
+    this._businesses = businesses;
+    this.rowData = this._businesses;
+    //this.rowData = [ {name:this.count++}];
   }
 
   ngOnInit() {
     console.log('on init');
+  }
+
+  onGridReady(params) {
+    this.gridApi = params.api;
+  }
+
+  onClicked(event){
+      console.log('Emiting');
+      this.selectedAddress.emit(event.data.address);
+  }
+
+  export() {
+     this.gridApi.exportDataAsCsv();
   }
   columnDefs = [
         {headerName: 'Name', field: 'name' , sortable: true, filter: true},
@@ -37,5 +60,5 @@ export class GridResultsComponent implements OnChanges{
             checkbox: true
         }
     };
-    rowData = this.businesses;
+    rowData = this._businesses;
 }

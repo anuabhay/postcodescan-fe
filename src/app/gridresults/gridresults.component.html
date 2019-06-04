@@ -1,9 +1,16 @@
-<div class="bottom"  id="myGrid" class="ag-theme-balham-dark">
+<div class="fleft-bottom ag-theme-balham-dark"  id="myGrid" >
   <ag-grid-angular
     style="width: 100%; height: 500px;"
     class="ag-theme-balham"
     [rowData]="rowData"
-    [columnDefs]="columnDefs">
+    [columnDefs]="columnDefs"
+    (gridReady)="onGridReady($event)"
+    (rowClicked)="onClicked($event)"
+  >
   </ag-grid-angular>
+</div>
+
+<div class="fright-bottom">
+  <button (click)="export()">Export Data</button>
 </div>
 

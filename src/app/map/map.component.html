@@ -5,14 +5,15 @@
 </head>
 <body>
 
-<div [ngBusy]="busy"></div>
+<div [ngBusy]="busy" class="loading"></div>
+<!--<div class="loading">dddd</div>-->
 
 <div class="wrap" >
   <div id="map" class="map fleft" ></div>
 
   <div class="fright" >
     <p>Selected Postcodes</p>
-    <div>
+  <div>
 
       <!--<ng-container *ngFor="let  suburb of suburbs">-->
        <!--{{suburb}}-->
@@ -24,7 +25,11 @@
 
     <p>Businesses Type for Search</p>
     <div >
-      <input ngControl="business_type" [(ngModel)]="business_type">
+      <!--<input ngControl="business_type" [(ngModel)]="business_type">-->
+       <input type="text" ngControl="business_type" [(ngModel)]="business_type" [matAutocomplete]="auto">
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option *ngFor="let option of business_types" [value]="option">{{option}}</mat-option>
+      </mat-autocomplete>
     </div>
 
   </div>
@@ -32,19 +37,22 @@
   <div class="fright" [hidden]="suburbs.length > 0">
     <p>Select postcode bounding box using the map</p>
   </div>
+  <div class="frightbutton">
+      <button (click)="get_businesses()">GetData</button>
+    <button (click)="findLocation([this ], 'a')">GetLocation</button>
 
-
-  <div class="fleft-bottom"  [hidden]="businesses.length < 1">
-     <!--<mycomponent [businesses]="businesses" name="businesses"></mycomponent>-->
-    <gridresults [businesses]="businesses"></gridresults>
   </div>
-  <div class="fleft-bottom" [hidden]="businesses.length > 0">
+  <div class="bottom"  [hidden]="businesses.length < 1">
+     <gridresults [businesses]="businesses" (selectedAddress)='displayAddress($event)'></gridresults>
+  </div>
+  <div [hidden]="businesses.length > 0">
+
   </div>
 
 
-  <div class="fright-bottom">
-    <button (click)="get_businesses()">GetData</button>
-  </div>
+  <!--<div class="fright-bottom">-->
+    <!--<button (click)="get_businesses()">GetData</button>-->
+  <!--</div>-->
 </div>
 </body>
 </html>

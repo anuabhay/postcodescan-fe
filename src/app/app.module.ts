@@ -12,6 +12,7 @@ import { GridResultsComponent } from './gridresults/gridresults.component';
 import { MatTableModule } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {BusyModule,BusyConfig} from 'angular2-busy';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 import { AgGridModule } from 'ag-grid-angular';
 
@@ -30,11 +31,12 @@ import { AgGridModule } from 'ag-grid-angular';
     MatTableModule,
     BrowserAnimationsModule,
     AgGridModule.withComponents(null),
+    MatAutocompleteModule,
     BusyModule.forRoot(
           new BusyConfig({
-            message: 'Don\'t panic!',
+            message: 'Don\'t panic Loading Data!!!!',
          backdrop: true,
-         template: '<div class="loading">{{message}}</div>',
+         //template: '<div>{{message}} </div>',
          delay: 200,
          minDuration: 600,
          wrapperClass: 'wrap'

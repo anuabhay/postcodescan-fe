@@ -4,10 +4,12 @@ import OlMap from 'ol/Map';
 import OlXYZ from 'ol/source/XYZ';
 import OlTileLayer from 'ol/layer/Tile';
 import OlView from 'ol/View';
+import OlFeature from 'ol/Feature';
+import Point from 'ol/geom/Point';
 import {DragBox, Select, DragAndDrop} from 'ol/interaction';
 import {platformModifierKeyOnly} from 'ol/events/condition';
 import VectorSource from 'ol/source/Vector';
-import {Style, Stroke} from 'ol/style';
+import {Style, Stroke , Icon} from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import {defaults as defaultControls, OverviewMap} from 'ol/control';
 import OSMXML from 'ol/format/OSMXML';
@@ -15,7 +17,20 @@ import {transformExtent} from 'ol/proj';
 import {bbox as bboxStrategy} from 'ol/loadingstrategy';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
+import {Constants} from './business_types';
 //import {SomeModule} from '../results/results.component';
+
+/*
+const markerStyle = new ol.style.Style({
+image: new ol.style.Icon ({
+anchor: [0.5, 46],
+anchorXUnits: 'fraction',
+anchorYUnits: 'pixels',
+opacity: 0.75,
+src: 'https://openlayers.org/en/v4.6.4/examples/data/icon.png'
+}))
+});
+*/
 
 import {
 HttpClient,
@@ -24,6 +39,7 @@ HttpEvent,
 HttpEventType
 } from '@angular/common/http';
 
+//const business_types: Array<any> =
 
 function Business(name, email , phone , address) {
    this.name = name;
@@ -46,16 +62,23 @@ export class MapComponent implements OnInit {
   layer: OlTileLayer;
   view: OlView;
   suburbs: Array<any>;
-  business_type: String = 'Restuarents';
+  business_type: String = 'Restaurants';
   businesses: Array<any>;
   busy: any;
   suburbsstr : String;
-  
+  business_types: Array<any>;
+  private count: number = 0;
+  private markerVectorLayer ;
+
+
   constructor(private http: HttpClient){
 
   }
 
+
   ngOnInit() {
+      this.business_types = (new Constants()).business_types;
+
       this.suburbs = [];
       this.businesses = [];
       this.source = new OlXYZ({
@@ -67,12 +90,12 @@ export class MapComponent implements OnInit {
       });
 
       this.view = new OlView({
-        center: fromLonLat([144.7751, -37.6744]),
-        zoom: 14,
+        center: fromLonLat([144.8905877 , -37.5944003]),
+        zoom: 17,
         //bounds: [-125, 25, -65, 50]
 
       });
-
+      //var x1 = this.getMarker()
       this.map = new OlMap({
         target: 'map',
         layers: [this.layer],
@@ -92,28 +115,23 @@ export class MapComponent implements OnInit {
 
       this.map.addInteraction(dragBox);
 
-      dragBox.on('boxend', (function() {
+      dragBox.on('boxend', (function()
+      {
         var extent = dragBox.getGeometry().getExtent();
         var projection = this.layer.getSource().getProjection();
         this.suburbs = [];
         this.suburbsstr = '';
-        //this.businesses = [];
         this.get_cities(this, extent, projection);
       }).bind(this)
       );
   }
 
-  private get_businesses1(){
-    let bus = new Business('name1','email1','phone1','address1');
-    //console.log(this.businesses);
-    this.businesses.push(bus);
-  }
-
   private get_businesses() {
+    let businesses_tmp : Array<any> = [];
 
-    this.businesses = [];
-    var url = 'http://localhost:8080/postcodes?locations=' + this.suburbs.join() + '&types=' +
-                this.business_type +'&dummy=yes';
+    console.log(this.suburbs);
+    var url = 'http://localhost:8080/postcodes?locations=' + this.suburbsstr + '&types=' +
+                this.business_type +'&dummy=no';
 
     console.log(url);
     const req = new HttpRequest('GET', url, {
@@ -143,9 +161,9 @@ export class MapComponent implements OnInit {
                                         business_collection[business].phone,
                                         business_collection[business].address
                                         );
-                 this.businesses.push(bus);
+                 businesses_tmp.push(bus);
             }
-            //console.log(this.businesses)
+            this.businesses = businesses_tmp;
             this.busy = 'Done';
       }
     });
@@ -249,7 +267,54 @@ export class MapComponent implements OnInit {
    this.map.addLayer(vector);
   }
 
-   private get_cities_osm() {
+ private getMarker(lon,lat) : VectorLayer
+ {
+    const markerStyle = new Style({
+        image: new Icon( ({
+          anchor: [0.5, 46],
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'pixels',
+          opacity: 0.75,
+          src: '../../favicon.ico'
+        }))
+      });
+    console.log('Inside the marker ' + lon + '  ' + lat)
+    var marker = new OlFeature({
+                          geometry: new Point(
+                          fromLonLat([parseFloat(lon) , parseFloat(lat)])
+                        ),
+                      });
+
+    var vectorSource = new VectorSource({
+                          features: [marker]
+                        });
+
+    var markerVectorLayer = new VectorLayer({
+                              source: vectorSource,
+                              style: markerStyle,
+                            });
+    return markerVectorLayer;
+ }
+ private findLocation(mapcomponent,address) {
+        //address = '9 Admiration Drive Craigieburn';
+        fetch('http://nominatim.openstreetmap.org/search/' + address + '?format=json').then(function(response) {
+          return response.json();
+        }).then(function(json) {
+
+          console.log(json[0].lon,json[0].lat);
+          var markerVectorLayer = mapcomponent.getMarker(json[0].lon, json[0].lat)
+          mapcomponent.map.removeLayer(mapcomponent.markerVectorLayer);
+          mapcomponent.map.addLayer(markerVectorLayer);
+          mapcomponent.markerVectorLayer = markerVectorLayer;
+        })
+  }
+
+  displayAddress(event){
+      console.log(event);
+      this.findLocation(this,event);
+  }
+
+  private get_cities_osm() {
     var vectorSource = new VectorSource({
         format: new OSMXML(),
         loader: function(extent, resolution, projection) {
